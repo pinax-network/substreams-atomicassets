@@ -1,0 +1,37 @@
+specVersion: v0.1.0
+package:
+  name: "atomicassets"
+  version: v0.0.1
+  url: https://github.com/pinax-network/substreams-atomicassets
+
+imports:
+  entities: https://github.com/streamingfast/substreams-sink-entity-changes/releases/download/v1.3.0/substreams-sink-entity-changes-v1.3.0.spkg
+  #sql: https://github.com/streamingfast/substreams-sink-sql/releases/download/protodefs-v1.0.3/substreams-sink-sql-protodefs-v1.0.3.spkg
+
+protobuf:
+  files:
+    - atomicassets.proto
+  importPaths:
+    - ./proto/v1
+
+binaries:
+  default:
+    type: wasm/rust-v1
+    file: ./target/wasm32-unknown-unknown/release/atomicassets.wasm
+
+modules:
+  - name: map_assets
+    kind: map
+    inputs:
+      - source: sf.antelope.type.v1.Block
+    output:
+      type: proto:antelope.atomicassets.v1.AssetsTableOperations
+
+# sink from https://github.com/streamingfast/substreams-sink-entity-changes
+  - name: graph_out
+    kind: map
+    inputs:
+      #- source: sf.substreams.v1.Clock
+      - map: map_assets
+    output:
+      type: proto:sf.substreams.sink.entity.v1.EntityChanges

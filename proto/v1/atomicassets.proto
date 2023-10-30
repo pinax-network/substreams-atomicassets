@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package antelope.atomicassets.v1;
+
+message AssetsTableOperations {
+  repeated AssetsTableOperation items = 1;
+}
+
+message AssetsTableOperation {
+  // trace information
+  string trx_id = 1;
+
+  // database operation
+  int32 db_operation = 3;
+  string scope = 12;
+
+  // data payload
+  uint64 asset_id = 4;
+  string collection_name = 5;
+  string schema_name = 6;
+  int32 template_id = 7;
+}
