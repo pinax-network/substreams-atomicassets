@@ -15,7 +15,7 @@ fn graph_out(events: AssetsTableOperations) -> Result<EntityChanges, Error> {
             .set_bigint("asset_id", asset_id)
             .set("scope", &event.scope)
             .set("collection_name", &event.collection_name)
-            .set("template_id", event.template_id);
+            .set_bigint("template_id", &event.template_id.to_string());
     }
     Ok(tables.to_entity_changes())
 }

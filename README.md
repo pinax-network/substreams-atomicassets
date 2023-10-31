@@ -46,7 +46,7 @@ graph TD;
           {
             "name": "template_id",
             "newValue": {
-              "int32": 9233
+              "int32": "9233"
             }
           },
           {
@@ -71,18 +71,18 @@ graph TD;
 ### Modules
 ```yaml
 Package name: atomicassets
-Version: v0.0.1
+Version: v0.0.1-dev
 Modules:
 ----
 Name: map_assets
 Initial block: 0
 Kind: map
 Output Type: proto:antelope.atomicassets.v1.AssetsTableOperations
-Hash: a10068218183fba448c923f3b72548fd1ab1ec91
+Hash: 20352b9d3cfa3ac63fafccddc79dda5d4aaeab57
 
 Name: graph_out
 Initial block: 0
 Kind: map
 Output Type: proto:sf.substreams.sink.entity.v1.EntityChanges
-Hash: 707e9ad41e6a95e254bc924f64a6482a977db197
+Hash: bf819973b362588d966e12b70bd6b9291253b02d
 ```

@@ -1,6 +1,6 @@
 [package]
 name = "atomicassets"
-version = "0.0.1"
+version = "0.0.1-dev"
 authors = ["Paul <paulm@pinax.network>"]
 description = "Substreams on EOS AtomicAssets NFT assets table"
 edition = "2021"
