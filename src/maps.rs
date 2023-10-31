@@ -32,6 +32,10 @@ fn map_assets(block: Block) -> Result<AssetsTableOperations, Error> {
                     }
                 };
             }
+            
+            // template_id == -1 means the table assets is being created for the scope
+            // not necessary here because it does not contain complete information
+            if data.template_id == -1 { continue; }
 
             items.push(AssetsTableOperation {
                 // trace information
