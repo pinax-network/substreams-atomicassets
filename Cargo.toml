@@ -1,9 +1,9 @@
 [package]
 name = "atomicassets"
-version = "0.0.1-dev"
-authors = ["Paul <paulm@pinax.network>"]
-description = "Substreams on EOS AtomicAssets NFT assets table"
+version = "0.1.0-dev"
+description = "Substreams on AtomicAssets standard"
 edition = "2021"
+authors = ["Denis <denis@pinax.network>", "Paul <paulm@pinax.network>"]
 
 [lib]
 crate-type = ["cdylib"]

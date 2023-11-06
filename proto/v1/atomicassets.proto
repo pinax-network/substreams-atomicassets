@@ -11,12 +11,151 @@ message AssetsTableOperation {
   string trx_id = 1;
 
   // database operation
-  int32 db_operation = 3;
-  string scope = 12;
+  int32 db_operation = 2;
+  string scope = 3;
 
   // data payload
   uint64 asset_id = 4;
   string collection_name = 5;
   string schema_name = 6;
   int32 template_id = 7;
+}
+
+message TransferEvents {
+  repeated TransferEvent items = 1;
+}
+
+message TransferEvent {
+  // trace information
+  string trx_id = 1;
+  string timestamp = 2;
+
+  // contract & scope
+  // string contract = 3;
+  // string receiver = 4;
+
+  // data payload
+  string collection_name = 5;
+  string from = 6;
+  string to = 7;
+  repeated uint64 asset_ids = 8;
+  string memo = 9;
+}
+
+message SchemaEvents {
+  repeated SchemaEvent items = 1;
+}
+
+message SchemaEvent {
+  // trace information
+  string trx_id = 1;
+  string timestamp = 6;
+
+  // data payload
+  string authorized_creator = 2;
+  string collection_name = 3;
+  string schema_name = 4;
+  repeated Format schema_format = 5;
+}
+
+message Format {
+  string name = 1;
+  string dtype = 2;
+}
+
+message Schemas {
+  repeated Schema items = 1;
+}
+
+message Schema {
+  // trace information
+  string trx_id = 1;
+  string timestamp = 7;
+
+  // database operation
+  string db_operation = 3;
+
+  // data payload
+  string collection_name = 6;
+  string schema_name = 4;
+  repeated Format format = 5;
+}
+
+message Collections {
+  repeated Collection items = 1;
+}
+
+message Collection {
+  // trace information
+  string trx_id = 1;
+  string timestamp = 10;
+
+  // database operation
+  string db_operation = 3;
+
+  // data payload
+  string collection_name = 4;
+  string author = 5;
+  bool allow_notify = 6;
+  repeated string authorized_accounts = 7;
+  repeated string notify_accounts = 8;
+  double market_fee = 9;
+}
+
+message Templates {
+  repeated Template items = 1;
+}
+
+message Template {
+  // trace information
+  string trx_id = 1;
+  string timestamp = 11;
+
+  // database operation
+  string db_operation = 3;
+
+  // data payload
+  int32 template_id = 4;
+  string schema_name = 5;
+  bool transferable =6;
+  bool burnable = 7;
+  uint32 max_supply = 8;
+  uint32 issued_supply =9;
+  string collection_name = 10;
+}
+
+message Balances {
+  repeated Balance items =1 ;
+}
+
+message Balance {
+  // trace information
+  string trx_id = 1;
+ 
+  // databas operation
+  string db_operation = 3;
+  
+  string owner = 4;
+  repeated string quantities = 5;
+}
+
+message Offers {
+  repeated Offer items = 1;
+}
+
+message Offer {
+  // trace information
+  string trx_id = 1;
+  string timestamp = 11;
+
+  // database operation
+  string db_operation = 3;
+  
+  uint64 offer_id = 4;
+  string offer_sender = 5;
+  string offer_recipient = 6;
+  repeated uint64 sender_asset_ids = 7;
+  repeated uint64 recipient_asset_ids = 8;
+  string memo = 9;
+  string ram_payer = 10;
 }
