@@ -2,8 +2,22 @@ syntax = "proto3";
 
 package antelope.atomicassets.v1;
 
-message AssetsTableOperations {
-  repeated AssetsTableOperation items = 1;
+import "google/protobuf/any.proto"; // Import Any type
+
+message AnyEvents {
+  repeated AnyEvent items = 1;
+}
+
+message AnyEvent {
+  oneof event {
+    AssetsTableOperation AssetsTableItem = 1;
+    TransferEvent TransferItem = 2;
+    SchemasTableOperation SchemasTableItem = 3;
+    CollectionsTableOperation CollectionsTableItem = 4;
+    TemplatesTableOperation TemplatesTableItem = 5;
+    BalancesTableOperation BalancesTableItem = 6;
+    OffersTableOperation OffersTableItem = 7;
+  }
 }
 
 message AssetsTableOperation {
@@ -21,41 +35,17 @@ message AssetsTableOperation {
   int32 template_id = 7;
 }
 
-message TransferEvents {
-  repeated TransferEvent items = 1;
-}
-
 message TransferEvent {
   // trace information
   string trx_id = 1;
   string timestamp = 2;
 
-  // contract & scope
-  // string contract = 3;
-  // string receiver = 4;
-
   // data payload
-  string collection_name = 5;
-  string from = 6;
-  string to = 7;
-  repeated uint64 asset_ids = 8;
-  string memo = 9;
-}
-
-message SchemaEvents {
-  repeated SchemaEvent items = 1;
-}
-
-message SchemaEvent {
-  // trace information
-  string trx_id = 1;
-  string timestamp = 6;
-
-  // data payload
-  string authorized_creator = 2;
   string collection_name = 3;
-  string schema_name = 4;
-  repeated Format schema_format = 5;
+  string from = 4;
+  string to = 5;
+  repeated uint64 asset_ids = 6;
+  string memo = 7;
 }
 
 message Format {
@@ -63,35 +53,27 @@ message Format {
   string dtype = 2;
 }
 
-message Schemas {
-  repeated Schema items = 1;
-}
-
-message Schema {
+message SchemasTableOperation {
   // trace information
   string trx_id = 1;
-  string timestamp = 7;
+  string timestamp = 2;
 
   // database operation
-  string db_operation = 3;
+  int32 db_operation = 3;
 
   // data payload
-  string collection_name = 6;
-  string schema_name = 4;
-  repeated Format format = 5;
+  string collection_name = 4;
+  string schema_name = 5;
+  repeated Format format = 6;
 }
 
-message Collections {
-  repeated Collection items = 1;
-}
-
-message Collection {
+message CollectionsTableOperation {
   // trace information
   string trx_id = 1;
-  string timestamp = 10;
+  string timestamp = 2;
 
   // database operation
-  string db_operation = 3;
+  int32 db_operation = 3;
 
   // data payload
   string collection_name = 4;
@@ -102,58 +84,47 @@ message Collection {
   double market_fee = 9;
 }
 
-message Templates {
-  repeated Template items = 1;
-}
-
-message Template {
+message TemplatesTableOperation {
   // trace information
   string trx_id = 1;
-  string timestamp = 11;
+  string timestamp = 2;
 
   // database operation
-  string db_operation = 3;
+  int32 db_operation = 3;
 
   // data payload
   int32 template_id = 4;
   string schema_name = 5;
-  bool transferable =6;
+  bool transferable = 6;
   bool burnable = 7;
   uint32 max_supply = 8;
-  uint32 issued_supply =9;
-  string collection_name = 10;
+  uint32 issued_supply = 9;
 }
 
-message Balances {
-  repeated Balance items =1 ;
-}
-
-message Balance {
+message BalancesTableOperation {
   // trace information
   string trx_id = 1;
- 
-  // databas operation
-  string db_operation = 3;
+  string timestamp = 2;
+
+  // database operation
+  int32 db_operation = 3;
   
+  // data payload
   string owner = 4;
   repeated string quantities = 5;
 }
 
-message Offers {
-  repeated Offer items = 1;
-}
-
-message Offer {
+message OffersTableOperation {
   // trace information
   string trx_id = 1;
-  string timestamp = 11;
+  string timestamp = 2;
 
   // database operation
-  string db_operation = 3;
+  int32 db_operation = 3;
   
   uint64 offer_id = 4;
-  string offer_sender = 5;
-  string offer_recipient = 6;
+  string sender = 5;
+  string recipient = 6;
   repeated uint64 sender_asset_ids = 7;
   repeated uint64 recipient_asset_ids = 8;
   string memo = 9;

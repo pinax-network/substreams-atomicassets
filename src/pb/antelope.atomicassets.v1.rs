@@ -1,9 +1,36 @@
 // @generated
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct AssetsTableOperations {
+pub struct AnyEvents {
     #[prost(message, repeated, tag="1")]
-    pub items: ::prost::alloc::vec::Vec<AssetsTableOperation>,
+    pub items: ::prost::alloc::vec::Vec<AnyEvent>,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct AnyEvent {
+    #[prost(oneof="any_event::Event", tags="1, 2, 3, 4, 5, 6, 7")]
+    pub event: ::core::option::Option<any_event::Event>,
+}
+/// Nested message and enum types in `AnyEvent`.
+pub mod any_event {
+    #[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Event {
+        #[prost(message, tag="1")]
+        AssetsTableItem(super::AssetsTableOperation),
+        #[prost(message, tag="2")]
+        TransferItem(super::TransferEvent),
+        #[prost(message, tag="3")]
+        SchemasTableItem(super::SchemasTableOperation),
+        #[prost(message, tag="4")]
+        CollectionsTableItem(super::CollectionsTableOperation),
+        #[prost(message, tag="5")]
+        TemplatesTableItem(super::TemplatesTableOperation),
+        #[prost(message, tag="6")]
+        BalancesTableItem(super::BalancesTableOperation),
+        #[prost(message, tag="7")]
+        OffersTableItem(super::OffersTableOperation),
+    }
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -28,57 +55,23 @@ pub struct AssetsTableOperation {
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct TransferEvents {
-    #[prost(message, repeated, tag="1")]
-    pub items: ::prost::alloc::vec::Vec<TransferEvent>,
-}
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct TransferEvent {
     /// trace information
     #[prost(string, tag="1")]
     pub trx_id: ::prost::alloc::string::String,
     #[prost(string, tag="2")]
     pub timestamp: ::prost::alloc::string::String,
-    // contract & scope
-    // string contract = 3;
-    // string receiver = 4;
-
     /// data payload
-    #[prost(string, tag="5")]
-    pub collection_name: ::prost::alloc::string::String,
-    #[prost(string, tag="6")]
-    pub from: ::prost::alloc::string::String,
-    #[prost(string, tag="7")]
-    pub to: ::prost::alloc::string::String,
-    #[prost(uint64, repeated, tag="8")]
-    pub asset_ids: ::prost::alloc::vec::Vec<u64>,
-    #[prost(string, tag="9")]
-    pub memo: ::prost::alloc::string::String,
-}
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct SchemaEvents {
-    #[prost(message, repeated, tag="1")]
-    pub items: ::prost::alloc::vec::Vec<SchemaEvent>,
-}
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct SchemaEvent {
-    /// trace information
-    #[prost(string, tag="1")]
-    pub trx_id: ::prost::alloc::string::String,
-    #[prost(string, tag="6")]
-    pub timestamp: ::prost::alloc::string::String,
-    /// data payload
-    #[prost(string, tag="2")]
-    pub authorized_creator: ::prost::alloc::string::String,
     #[prost(string, tag="3")]
     pub collection_name: ::prost::alloc::string::String,
     #[prost(string, tag="4")]
-    pub schema_name: ::prost::alloc::string::String,
-    #[prost(message, repeated, tag="5")]
-    pub schema_format: ::prost::alloc::vec::Vec<Format>,
+    pub from: ::prost::alloc::string::String,
+    #[prost(string, tag="5")]
+    pub to: ::prost::alloc::string::String,
+    #[prost(uint64, repeated, tag="6")]
+    pub asset_ids: ::prost::alloc::vec::Vec<u64>,
+    #[prost(string, tag="7")]
+    pub memo: ::prost::alloc::string::String,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -90,46 +83,34 @@ pub struct Format {
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Schemas {
-    #[prost(message, repeated, tag="1")]
-    pub items: ::prost::alloc::vec::Vec<Schema>,
-}
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Schema {
+pub struct SchemasTableOperation {
     /// trace information
     #[prost(string, tag="1")]
     pub trx_id: ::prost::alloc::string::String,
-    #[prost(string, tag="7")]
+    #[prost(string, tag="2")]
     pub timestamp: ::prost::alloc::string::String,
     /// database operation
-    #[prost(string, tag="3")]
-    pub db_operation: ::prost::alloc::string::String,
+    #[prost(int32, tag="3")]
+    pub db_operation: i32,
     /// data payload
-    #[prost(string, tag="6")]
-    pub collection_name: ::prost::alloc::string::String,
     #[prost(string, tag="4")]
+    pub collection_name: ::prost::alloc::string::String,
+    #[prost(string, tag="5")]
     pub schema_name: ::prost::alloc::string::String,
-    #[prost(message, repeated, tag="5")]
+    #[prost(message, repeated, tag="6")]
     pub format: ::prost::alloc::vec::Vec<Format>,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Collections {
-    #[prost(message, repeated, tag="1")]
-    pub items: ::prost::alloc::vec::Vec<Collection>,
-}
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Collection {
+pub struct CollectionsTableOperation {
     /// trace information
     #[prost(string, tag="1")]
     pub trx_id: ::prost::alloc::string::String,
-    #[prost(string, tag="10")]
+    #[prost(string, tag="2")]
     pub timestamp: ::prost::alloc::string::String,
     /// database operation
-    #[prost(string, tag="3")]
-    pub db_operation: ::prost::alloc::string::String,
+    #[prost(int32, tag="3")]
+    pub db_operation: i32,
     /// data payload
     #[prost(string, tag="4")]
     pub collection_name: ::prost::alloc::string::String,
@@ -146,21 +127,15 @@ pub struct Collection {
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Templates {
-    #[prost(message, repeated, tag="1")]
-    pub items: ::prost::alloc::vec::Vec<Template>,
-}
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Template {
+pub struct TemplatesTableOperation {
     /// trace information
     #[prost(string, tag="1")]
     pub trx_id: ::prost::alloc::string::String,
-    #[prost(string, tag="11")]
+    #[prost(string, tag="2")]
     pub timestamp: ::prost::alloc::string::String,
     /// database operation
-    #[prost(string, tag="3")]
-    pub db_operation: ::prost::alloc::string::String,
+    #[prost(int32, tag="3")]
+    pub db_operation: i32,
     /// data payload
     #[prost(int32, tag="4")]
     pub template_id: i32,
@@ -174,24 +149,19 @@ pub struct Template {
     pub max_supply: u32,
     #[prost(uint32, tag="9")]
     pub issued_supply: u32,
-    #[prost(string, tag="10")]
-    pub collection_name: ::prost::alloc::string::String,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Balances {
-    #[prost(message, repeated, tag="1")]
-    pub items: ::prost::alloc::vec::Vec<Balance>,
-}
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Balance {
+pub struct BalancesTableOperation {
     /// trace information
     #[prost(string, tag="1")]
     pub trx_id: ::prost::alloc::string::String,
-    /// databas operation
-    #[prost(string, tag="3")]
-    pub db_operation: ::prost::alloc::string::String,
+    #[prost(string, tag="2")]
+    pub timestamp: ::prost::alloc::string::String,
+    /// database operation
+    #[prost(int32, tag="3")]
+    pub db_operation: i32,
+    /// data payload
     #[prost(string, tag="4")]
     pub owner: ::prost::alloc::string::String,
     #[prost(string, repeated, tag="5")]
@@ -199,27 +169,21 @@ pub struct Balance {
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Offers {
-    #[prost(message, repeated, tag="1")]
-    pub items: ::prost::alloc::vec::Vec<Offer>,
-}
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Offer {
+pub struct OffersTableOperation {
     /// trace information
     #[prost(string, tag="1")]
     pub trx_id: ::prost::alloc::string::String,
-    #[prost(string, tag="11")]
+    #[prost(string, tag="2")]
     pub timestamp: ::prost::alloc::string::String,
     /// database operation
-    #[prost(string, tag="3")]
-    pub db_operation: ::prost::alloc::string::String,
+    #[prost(int32, tag="3")]
+    pub db_operation: i32,
     #[prost(uint64, tag="4")]
     pub offer_id: u64,
     #[prost(string, tag="5")]
-    pub offer_sender: ::prost::alloc::string::String,
+    pub sender: ::prost::alloc::string::String,
     #[prost(string, tag="6")]
-    pub offer_recipient: ::prost::alloc::string::String,
+    pub recipient: ::prost::alloc::string::String,
     #[prost(uint64, repeated, tag="7")]
     pub sender_asset_ids: ::prost::alloc::vec::Vec<u64>,
     #[prost(uint64, repeated, tag="8")]

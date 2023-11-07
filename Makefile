@@ -27,12 +27,12 @@ info:
 
 .PHONY: run
 run: build
-	substreams run -e eos.firehose.eosnation.io:9001 map_assets -s 338947637 -t +1
+	substreams run -e eos.substreams.pinax.network:443 map_events -s 338947637 -t +1
 
 .PHONY: gui
 gui: build
-	substreams gui -e eos.firehose.eosnation.io:9001 map_assets -s 329693282 -t 329871503
+	substreams gui -e eos.substreams.pinax.network:443 map_events -s 329693282 -t 329871503
 
 .PHONY: graph_out
 graph_out: build
-	substreams run -e eos.firehose.eosnation.io:9001 substreams.yaml graph_out -s 338947637 -t +1
+	substreams run -e eos.substreams.pinax.network:443 substreams.yaml graph_out -s 338947637 -t +1

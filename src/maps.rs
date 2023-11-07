@@ -6,61 +6,212 @@ use crate::abi;
 use crate::atomicassets::*;
 
 #[substreams::handlers::map]
-fn map_assets(block: Block) -> Result<AssetsTableOperations, Error> {
-    let mut items = vec![];
-
-    for trx in block.all_transaction_traces() {
-        for db_op in &trx.db_ops {
-            if db_op.table_name != "assets" { continue; }
-
-            let data;
-            if db_op.operation == 3 {
-                data = match abi::AssetsS::try_from(db_op.old_data_json.as_str()){
-                    Ok(data) => data,
-                    Err(error) => {
-                        substreams::log::debug!("old data not decoded: {}", error);
-                        continue;
-                    }
-                };
-            }
-            else {
-                data = match abi::AssetsS::try_from(db_op.new_data_json.as_str()){
-                    Ok(data) => data,
-                    Err(error) => {
-                        substreams::log::debug!("new data not decoded: {}", error);
-                        continue;
-                    }
-                };
-            }
-            
-            // template_id == -1 means the table assets is being created for the scope
-            // not necessary here because it does not contain complete information
-            if data.template_id == -1 { continue; }
-
-            items.push(AssetsTableOperation {
-                // trace information
-                trx_id: trx.id.clone(),
-
-                // db operation 
-                db_operation: db_op.operation.clone(),
-                scope: db_op.scope.clone(),
-
-                // data payload
-                asset_id: data.asset_id.clone(),
-                collection_name: data.collection_name.clone(),
-                schema_name: data.schema_name.clone(),
-                template_id: data.template_id.clone(),
-            });
-        }
-    }
-    Ok(AssetsTableOperations { items })
-}
-
-#[substreams::handlers::map]
-fn map_transfers(block: Block) -> Result<TransferEvents, Error> {
+fn map_events(block: Block) -> Result<AnyEvents, Error> {
     let mut response = vec![];
 
     for trx in block.all_transaction_traces() {
+        // db_ops
+        for db_op in &trx.db_ops {
+            let json_data;
+            match db_op.operation{
+                0 => { log::debug!("db operation Unknown: {}", db_op.operation);
+                        continue;}
+                1 | 2 => { json_data = db_op.new_data_json.as_str(); }
+                3 => { json_data = db_op.old_data_json.as_str(); }
+                _ => { log::debug!("db operation couldn't be matched : {}", db_op.operation);
+                        continue;}
+            }
+    
+            match db_op.table_name.as_str() {
+                "assets" => {
+                    let data;
+                    data = match abi::AssetsS::try_from(json_data){
+                        Ok(data) => data,
+                        Err(error) => {
+                            log::debug!("json data not decoded into atomicassets::AssetsS : {}", error);
+                            continue;
+                        }
+                    };
+                    if data.template_id == -1 { continue; }
+                    response.push(AnyEvent {
+                        event: Some(any_event::Event::AssetsTableItem(
+                            AssetsTableOperation {
+                                // trace information
+                                trx_id: trx.id.clone(),
+    
+                                // db operation 
+                                db_operation: db_op.operation.clone(),
+                                scope: db_op.scope.clone(),
+    
+                                // data payload
+                                asset_id: data.asset_id.clone(),
+                                collection_name: data.collection_name.clone(),
+                                schema_name: data.schema_name.clone(),
+                                template_id: data.template_id.clone(),
+                            }
+                        ))
+                    });
+                },
+                "collections" => {
+                    let data;
+                    data = match abi::CollectionsS::try_from(json_data){
+                        Ok(data) => data,
+                        Err(error) => {
+                            log::debug!("json data not decoded into atomicassets::CollectionsS : {}", error);
+                            continue;
+                        }
+                    };
+    
+                    response.push(AnyEvent {
+                        event: Some(any_event::Event::CollectionsTableItem(
+                            CollectionsTableOperation {
+                                // trace information
+                                trx_id: trx.id.clone(),
+                                timestamp: block.header.as_ref().unwrap().timestamp.as_ref().unwrap().to_string(),
+    
+                                // db operation 
+                                db_operation: db_op.operation.clone(),
+    
+                                // data payload
+                                collection_name: data.collection_name.clone(),
+                                author: data.author.clone(),
+                                allow_notify: data.allow_notify.clone(),
+                                authorized_accounts: data.authorized_accounts.clone(),
+                                notify_accounts: data.notify_accounts.clone(),
+                                market_fee: data.market_fee.clone(),
+                            }
+                        ))
+                    });
+                },
+                "templates" => {
+                    let data;
+                    data = match abi::TemplatesS::try_from(json_data){
+                        Ok(data) => data,
+                        Err(error) => {
+                            log::debug!("json data not decoded into atomicassets::TemplatesS : {}", error);
+                            continue;
+                        }
+                    };
+    
+                    response.push(AnyEvent {
+                        event: Some(any_event::Event::TemplatesTableItem(
+                            TemplatesTableOperation {
+                                // trace information
+                                trx_id: trx.id.clone(),
+                                timestamp: block.header.as_ref().unwrap().timestamp.as_ref().unwrap().to_string(),
+    
+                                // db operation 
+                                db_operation: db_op.operation.clone(),
+    
+                                // data payload
+                                template_id: data.template_id.clone(),
+                                schema_name: data.schema_name.clone(),
+                                transferable: data.transferable.clone(),
+                                burnable: data.burnable.clone(),
+                                max_supply: data.max_supply.clone(),
+                                issued_supply: data.issued_supply.clone(),
+                            }
+                        ))
+                    });
+                },
+                "schemas" => {
+                    let data;
+                    data = match abi::SchemasS::try_from(json_data){
+                        Ok(data) => data,
+                        Err(error) => {
+                            log::debug!("json data not decoded into atomicassets::SchemasS : {}", error);
+                            continue;
+                        }
+                    };
+    
+                    let mut format = vec![];
+                    for f in &data.format {
+                        format.push(Format {
+                            name: f.name.clone(),
+                            dtype: f.r#type.clone(),
+                        });
+                    }
+    
+                    response.push(AnyEvent {
+                        event: Some(any_event::Event::SchemasTableItem(
+                            SchemasTableOperation {
+                                // trace information
+                                trx_id: trx.id.clone(),
+                                timestamp: block.header.as_ref().unwrap().timestamp.as_ref().unwrap().to_string(),
+    
+                                // db operation 
+                                db_operation: db_op.operation.clone(),
+    
+                                // data payload
+                                collection_name: db_op.scope.clone(),
+                                schema_name: data.schema_name.clone(),
+                                format: format,
+                            }
+                        ))
+                    });
+                },
+                "offers" => {
+                    let data;
+                    data = match abi::OffersS::try_from(json_data){
+                        Ok(data) => data,
+                        Err(error) => {
+                            log::debug!("json data not decoded into atomicassets::OfferS : {}", error);
+                            continue;
+                        }
+                    };
+    
+                    response.push(AnyEvent {
+                        event: Some(any_event::Event::OffersTableItem(
+                            OffersTableOperation {
+                                // trace information
+                                trx_id: trx.id.clone(),
+                                timestamp: block.header.as_ref().unwrap().timestamp.as_ref().unwrap().to_string(),
+    
+                                // db operation 
+                                db_operation: db_op.operation.clone(),
+    
+                                // data payload
+                                offer_id: data.offer_id.clone(),
+                                sender: data.sender.clone(),
+                                recipient: data.recipient.clone(),
+                                sender_asset_ids: data.sender_asset_ids.clone(),
+                                recipient_asset_ids: data.recipient_asset_ids.clone(),
+                                memo: data.memo.clone(),
+                                ram_payer: data.ram_payer.clone(),
+                            }
+                        ))
+                    });
+                },
+                "balances" => {
+                    let data;
+                    data = match abi::BalancesS::try_from(json_data){
+                        Ok(data) => data,
+                        Err(error) => {
+                            log::debug!("json data not decoded into atomicassets::BalancesS : {}", error);
+                            continue;
+                        }
+                    };
+    
+                    response.push(AnyEvent {
+                        event: Some(any_event::Event::BalancesTableItem(
+                            BalancesTableOperation {
+                                // trace information
+                                trx_id: trx.id.clone(),
+                                timestamp: block.header.as_ref().unwrap().timestamp.as_ref().unwrap().to_string(),
+    
+                                // db operation 
+                                db_operation: db_op.operation.clone(),
+    
+                                // data payload
+                                owner: data.owner.clone(),
+                                quantities: data.quantities.clone(),
+                            }
+                        ))
+                    });
+                },
+                _ => {continue}
+            }  
+        }
         // action traces
         for trace in &trx.action_traces {
             let action_trace = trace.action.as_ref().unwrap();
@@ -71,310 +222,26 @@ fn map_transfers(block: Block) -> Result<TransferEvents, Error> {
                 Ok(data) => {
                     // filtering only atomicmarket related transfers
                     // if data.from != "atomicmarket" && data.to != "atomicmarket" {continue}
-                    response.push(TransferEvent {
-                        trx_id: trx.id.clone(),
-                        timestamp: block.header.as_ref().unwrap().timestamp.as_ref().unwrap().to_string(),
-                        collection_name: data.collection_name,
-                        from: data.from,
-                        to: data.to,
-                        asset_ids: data.asset_ids,
-                        memo: data.memo,
+                    response.push(AnyEvent {
+                        event: Some(any_event::Event::TransferItem( 
+                            TransferEvent{
+                                trx_id: trx.id.clone(),
+                                timestamp: block.header.as_ref().unwrap().timestamp.as_ref().unwrap().to_string(),
+                                collection_name: data.collection_name,
+                                from: data.from,
+                                to: data.to,
+                                asset_ids: data.asset_ids,
+                                memo: data.memo,
+                            }
+                        ))
                     });
                 }
                 Err(error) => {
-                    substreams::log::debug!("Failed to decode atomicassets::logtransfer: {}", error);
+                    log::debug!("Failed to decode atomicassets::logtransfer: {}", error);
                     continue;
                 }
            }
         }
     }
-    Ok(TransferEvents { items: response })
-}
-
-#[substreams::handlers::map]
-fn map_schema_events(block: Block) -> Result<SchemaEvents, Error> {
-    let mut response = vec![];
-
-    for trx in block.all_transaction_traces() {
-        // action traces
-        for trace in &trx.action_traces {
-            let action_trace = trace.action.as_ref().unwrap();
-            if action_trace.account != trace.receiver {continue}
-            if action_trace.name != "createschema" { continue; }
-            match abi::Createschema::try_from(action_trace.json_data.as_str()) {
-                Ok(data) => {
-                    let mut formats = vec![];
-                    for f in &data.schema_format {
-                        formats.push(Format {
-                            name: f.name.clone(),
-                            dtype: f.r#type.clone(),
-                        });
-                    }
-                    response.push(SchemaEvent {
-                        // trace information
-                        trx_id: trx.id.clone(),
-                        timestamp: block.header.as_ref().unwrap().timestamp.as_ref().unwrap().to_string(),
-
-                        // payload
-                        authorized_creator: data.authorized_creator,
-                        collection_name: data.collection_name,
-                        schema_name: data.schema_name,
-                        schema_format : formats,
-                    });
-                },
-                Err(error) => {
-                    substreams::log::debug!("Failed to decode atomicassets::createschema: {}", error);
-                    continue;
-                } 
-            }
-        }
-    }
-    Ok(SchemaEvents { items: response })
-}
-
-#[substreams::handlers::map]
-fn map_collections(block: Block) -> Result<Collections, Error> {
-    let mut items = vec![];
-
-    for trx in block.all_transaction_traces() {
-        for db_op in &trx.db_ops {
-            if db_op.table_name != "collections" { continue; }
-
-            let data;
-            if db_op.operation == 3 {
-                data = match abi::CollectionsS::try_from(db_op.old_data_json.as_str()){
-                    Ok(data) => data,
-                    Err(error) => {
-                        substreams::log::debug!("old data not decoded: {}", error);
-                        continue;
-                    }
-                };
-            }
-            else {
-                data = match abi::CollectionsS::try_from(db_op.new_data_json.as_str()){
-                    Ok(data) => data,
-                    Err(error) => {
-                        substreams::log::debug!("new data not decoded: {}", error);
-                        continue;
-                    }
-                };
-            }
-
-            items.push(Collection {
-                // trace information
-                trx_id: trx.id.clone(),
-                timestamp: block.header.as_ref().unwrap().timestamp.as_ref().unwrap().to_string(),
-
-                // db operation 
-                db_operation: db_op.operation.to_string(),
-
-                // payload
-                collection_name: data.collection_name.clone(),
-                author: data.author.clone(),
-                allow_notify: data.allow_notify.clone(),
-                authorized_accounts: data.authorized_accounts.clone(),
-                notify_accounts: data.notify_accounts.clone(),
-                market_fee: data.market_fee.clone(),
-            });
-        }
-    }
-    Ok(Collections { items })
-}
-
-#[substreams::handlers::map]
-fn map_templates(block: Block) -> Result<Templates, Error> {
-    let mut items = vec![];
-    for trx in block.all_transaction_traces() {
-        for db_op in &trx.db_ops {
-            if db_op.table_name != "templates" { continue; }
-
-            let data;
-            if db_op.operation == 3 {
-                data = match abi::TemplatesS::try_from(db_op.old_data_json.as_str()){
-                    Ok(data) => data,
-                    Err(error) => {
-                        substreams::log::debug!("old data not decoded: {}", error);
-                        continue;
-                    }
-                };
-            }
-            else {
-                data = match abi::TemplatesS::try_from(db_op.new_data_json.as_str()){
-                    Ok(data) => data,
-                    Err(error) => {
-                        substreams::log::debug!("new data not decoded: {}", error);
-                        continue;
-                    }
-                };
-            }
-
-            items.push(Template {
-                // trace information
-                trx_id: trx.id.clone(),
-                timestamp: block.header.as_ref().unwrap().timestamp.as_ref().unwrap().to_string(),
-
-                // db operation 
-                db_operation: db_op.operation.to_string(),
-
-                // data payload
-                template_id: data.template_id.clone(),
-                schema_name: data.schema_name.clone(),
-                transferable: data.transferable.clone(),
-                burnable: data.burnable.clone(),
-                max_supply: data.max_supply.clone(),
-                issued_supply: data.issued_supply.clone(),
-                collection_name: db_op.scope.clone(),
-            });
-        }
-    }
-    Ok(Templates { items })
-}
-
-#[substreams::handlers::map]
-fn map_schemas(block: Block) -> Result<Schemas, Error> {
-    let mut items = vec![];
-
-    for trx in block.all_transaction_traces() {
-        for db_op in &trx.db_ops {
-            if db_op.table_name != "schemas" { continue; }
-
-            let data;
-            if db_op.operation == 3 {
-                data = match abi::SchemasS::try_from(db_op.old_data_json.as_str()){
-                    Ok(data) => data,
-                    Err(error) => {
-                        substreams::log::debug!("old data not decoded: {}", error);
-                        continue;
-                    }
-                };
-            }
-            else {
-                data = match abi::SchemasS::try_from(db_op.new_data_json.as_str()){
-                    Ok(data) => data,
-                    Err(error) => {
-                        substreams::log::debug!("new data not decoded: {}", error);
-                        continue;
-                    }
-                };
-            }
-
-            let mut format = vec![];
-            for f in &data.format {
-                format.push(Format {
-                    name: f.name.clone(),
-                    dtype: f.r#type.clone(),
-                });
-            }
-
-            items.push(Schema {
-                // trace information
-                trx_id: trx.id.clone(),
-                timestamp: block.header.as_ref().unwrap().timestamp.as_ref().unwrap().to_string(),
-
-                // db operation 
-                db_operation: db_op.operation.to_string(),
-
-                // data payload
-                collection_name: db_op.scope.clone(),
-                schema_name: data.schema_name.clone(),
-                format: format,
-            });
-        }
-    }
-    Ok(Schemas { items })
-}
-
-// Not tested yet
-#[substreams::handlers::map]
-fn map_balances(block: Block) -> Result<Balances, Error> {
-    let mut items = vec![];
-
-    for trx in block.all_transaction_traces() {
-        for db_op in &trx.db_ops {
-            if db_op.table_name != "balances" { continue; }
-
-            let data;
-            if db_op.operation == 3 {
-                data = match abi::BalancesS::try_from(db_op.old_data_json.as_str()){
-                    Ok(data) => data,
-                    Err(error) => {
-                        substreams::log::debug!("old data not decoded: {}", error);
-                        continue;
-                    }
-                };
-            }
-            else {
-                data = match abi::BalancesS::try_from(db_op.new_data_json.as_str()){
-                    Ok(data) => data,
-                    Err(error) => {
-                        substreams::log::debug!("new data not decoded: {}", error);
-                        continue;
-                    }
-                };
-            }
-            
-            items.push(Balance {
-                // trace information
-                trx_id: trx.id.clone(),
-
-                // db operation 
-                db_operation: db_op.operation.to_string(),
-
-                // data payload
-                owner: data.owner.clone(),
-                quantities: data.quantities.clone(),
-            });
-        }
-    }
-    Ok(Balances { items })
-}
-
-#[substreams::handlers::map]
-fn map_offers(block: Block) -> Result<Offers, Error> {
-    let mut items = vec![];
-
-    for trx in block.all_transaction_traces() {
-        for db_op in &trx.db_ops {
-            if db_op.table_name != "offers" { continue; }
-
-            let data;
-            if db_op.operation == 3 {
-                data = match abi::OffersS::try_from(db_op.old_data_json.as_str()){
-                    Ok(data) => data,
-                    Err(error) => {
-                        substreams::log::debug!("old data not decoded: {}", error);
-                        continue;
-                    }
-                };
-            }
-            else {
-                data = match abi::OffersS::try_from(db_op.new_data_json.as_str()){
-                    Ok(data) => data,
-                    Err(error) => {
-                        substreams::log::debug!("new data not decoded: {}", error);
-                        continue;
-                    }
-                };
-            }
-
-            items.push(Offer {
-                // trace information
-                trx_id: trx.id.clone(),
-                timestamp: block.header.as_ref().unwrap().timestamp.as_ref().unwrap().to_string(),
-
-                // db operation 
-                db_operation: db_op.operation.to_string(),
-
-                // data payload
-                offer_id: data.offer_id.clone(),
-                offer_sender: data.sender.clone(),
-                offer_recipient: data.recipient.clone(),
-                sender_asset_ids: data.sender_asset_ids.clone(),
-                recipient_asset_ids: data.recipient_asset_ids.clone(),
-                memo: data.memo.clone(),
-                ram_payer: data.ram_payer.clone(),
-            });
-        }
-    }
-    Ok(Offers { items })
+    Ok(AnyEvents { items: response })
 }
