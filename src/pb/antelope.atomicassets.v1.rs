@@ -41,9 +41,9 @@ pub struct AssetsTableOperation {
     /// database operation
     #[prost(int32, tag="2")]
     pub db_operation: i32,
-    #[prost(string, tag="3")]
-    pub scope: ::prost::alloc::string::String,
     /// data payload
+    #[prost(string, tag="3")]
+    pub owner: ::prost::alloc::string::String,
     #[prost(uint64, tag="4")]
     pub asset_id: u64,
     #[prost(string, tag="5")]
@@ -149,6 +149,8 @@ pub struct TemplatesTableOperation {
     pub max_supply: u32,
     #[prost(uint32, tag="9")]
     pub issued_supply: u32,
+    #[prost(string, tag="10")]
+    pub collection_name: ::prost::alloc::string::String,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]

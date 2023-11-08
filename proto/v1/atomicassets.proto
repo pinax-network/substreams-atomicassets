@@ -26,9 +26,9 @@ message AssetsTableOperation {
 
   // database operation
   int32 db_operation = 2;
-  string scope = 3;
 
   // data payload
+  string owner = 3;
   uint64 asset_id = 4;
   string collection_name = 5;
   string schema_name = 6;
@@ -99,6 +99,7 @@ message TemplatesTableOperation {
   bool burnable = 7;
   uint32 max_supply = 8;
   uint32 issued_supply = 9;
+  string collection_name = 10;
 }
 
 message BalancesTableOperation {

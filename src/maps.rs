@@ -41,9 +41,9 @@ fn map_events(block: Block) -> Result<AnyEvents, Error> {
     
                                 // db operation 
                                 db_operation: db_op.operation.clone(),
-                                scope: db_op.scope.clone(),
-    
+                            
                                 // data payload
+                                owner: db_op.scope.clone(),
                                 asset_id: data.asset_id.clone(),
                                 collection_name: data.collection_name.clone(),
                                 schema_name: data.schema_name.clone(),
@@ -110,6 +110,7 @@ fn map_events(block: Block) -> Result<AnyEvents, Error> {
                                 burnable: data.burnable.clone(),
                                 max_supply: data.max_supply.clone(),
                                 issued_supply: data.issued_supply.clone(),
+                                collection_name: db_op.scope.clone(),
                             }
                         ))
                     });
