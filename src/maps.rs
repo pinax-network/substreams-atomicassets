@@ -21,7 +21,7 @@ fn map_events(block: Block) -> Result<AnyEvents, Error> {
                 _ => { log::debug!("db operation couldn't be matched : {}", db_op.operation);
                         continue;}
             }
-    
+
             match db_op.table_name.as_str() {
                 "assets" => {
                     let data;
@@ -38,10 +38,10 @@ fn map_events(block: Block) -> Result<AnyEvents, Error> {
                             AssetsTableOperation {
                                 // trace information
                                 trx_id: trx.id.clone(),
-    
-                                // db operation 
+
+                                // db operation
                                 db_operation: db_op.operation.clone(),
-                            
+
                                 // data payload
                                 owner: db_op.scope.clone(),
                                 asset_id: data.asset_id.clone(),
@@ -61,17 +61,17 @@ fn map_events(block: Block) -> Result<AnyEvents, Error> {
                             continue;
                         }
                     };
-    
+
                     response.push(AnyEvent {
                         event: Some(any_event::Event::CollectionsTableItem(
                             CollectionsTableOperation {
                                 // trace information
                                 trx_id: trx.id.clone(),
                                 timestamp: block.header.as_ref().unwrap().timestamp.as_ref().unwrap().to_string(),
-    
-                                // db operation 
+
+                                // db operation
                                 db_operation: db_op.operation.clone(),
-    
+
                                 // data payload
                                 collection_name: data.collection_name.clone(),
                                 author: data.author.clone(),
@@ -92,17 +92,17 @@ fn map_events(block: Block) -> Result<AnyEvents, Error> {
                             continue;
                         }
                     };
-    
+
                     response.push(AnyEvent {
                         event: Some(any_event::Event::TemplatesTableItem(
                             TemplatesTableOperation {
                                 // trace information
                                 trx_id: trx.id.clone(),
                                 timestamp: block.header.as_ref().unwrap().timestamp.as_ref().unwrap().to_string(),
-    
-                                // db operation 
+
+                                // db operation
                                 db_operation: db_op.operation.clone(),
-    
+
                                 // data payload
                                 template_id: data.template_id.clone(),
                                 schema_name: data.schema_name.clone(),
@@ -124,7 +124,7 @@ fn map_events(block: Block) -> Result<AnyEvents, Error> {
                             continue;
                         }
                     };
-    
+
                     let mut format = vec![];
                     for f in &data.format {
                         format.push(Format {
@@ -132,17 +132,17 @@ fn map_events(block: Block) -> Result<AnyEvents, Error> {
                             dtype: f.r#type.clone(),
                         });
                     }
-    
+
                     response.push(AnyEvent {
                         event: Some(any_event::Event::SchemasTableItem(
                             SchemasTableOperation {
                                 // trace information
                                 trx_id: trx.id.clone(),
                                 timestamp: block.header.as_ref().unwrap().timestamp.as_ref().unwrap().to_string(),
-    
-                                // db operation 
+
+                                // db operation
                                 db_operation: db_op.operation.clone(),
-    
+
                                 // data payload
                                 collection_name: db_op.scope.clone(),
                                 schema_name: data.schema_name.clone(),
@@ -160,17 +160,17 @@ fn map_events(block: Block) -> Result<AnyEvents, Error> {
                             continue;
                         }
                     };
-    
+
                     response.push(AnyEvent {
                         event: Some(any_event::Event::OffersTableItem(
                             OffersTableOperation {
                                 // trace information
                                 trx_id: trx.id.clone(),
                                 timestamp: block.header.as_ref().unwrap().timestamp.as_ref().unwrap().to_string(),
-    
-                                // db operation 
+
+                                // db operation
                                 db_operation: db_op.operation.clone(),
-    
+
                                 // data payload
                                 offer_id: data.offer_id.clone(),
                                 sender: data.sender.clone(),
@@ -192,17 +192,17 @@ fn map_events(block: Block) -> Result<AnyEvents, Error> {
                             continue;
                         }
                     };
-    
+
                     response.push(AnyEvent {
                         event: Some(any_event::Event::BalancesTableItem(
                             BalancesTableOperation {
                                 // trace information
                                 trx_id: trx.id.clone(),
                                 timestamp: block.header.as_ref().unwrap().timestamp.as_ref().unwrap().to_string(),
-    
-                                // db operation 
+
+                                // db operation
                                 db_operation: db_op.operation.clone(),
-    
+
                                 // data payload
                                 owner: data.owner.clone(),
                                 quantities: data.quantities.clone(),
@@ -211,7 +211,7 @@ fn map_events(block: Block) -> Result<AnyEvents, Error> {
                     });
                 },
                 _ => {continue}
-            }  
+            }
         }
         // action traces
         for trace in &trx.action_traces {
@@ -224,7 +224,7 @@ fn map_events(block: Block) -> Result<AnyEvents, Error> {
                     // filtering only atomicmarket related transfers
                     // if data.from != "atomicmarket" && data.to != "atomicmarket" {continue}
                     response.push(AnyEvent {
-                        event: Some(any_event::Event::TransferItem( 
+                        event: Some(any_event::Event::TransferItem(
                             TransferEvent{
                                 trx_id: trx.id.clone(),
                                 timestamp: block.header.as_ref().unwrap().timestamp.as_ref().unwrap().to_string(),
